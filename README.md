@@ -16,37 +16,36 @@ Tensorflow implementation of **Accurate Image Super-Resolution Using Very Deep C
 | Hidden Layer | 18            | 3 x 3           | (64, 64)                | ReLU                  |
 | Output Layer | 1             | 3 x 3           | (64, 1)                 | -                     |
 
-### Loss function
+### Implementation Detail
 
-- $$ Loss(W)=\frac{1}{2}||r-f(x)||^{2} $$
-- Mean Squared Error loss
+#### Loss function
+
+- Mean Squared Error loss (Euclidean loss)
 - Residual learning 
 
-### Regularization
+#### Regularization
 
-- $$ reg(W)=\frac{\lambda}{2}\sum_{w \in W} {||w||^{2}} $$
-- L2 Regularization
-- $ \lambda $: 0.0001
+- Different from original paper, no regularization is used 
 
-### Optimization
+#### Optimization
 
 - Weight initialization: He method
 - Bias initialization: Zero initialize
 - AdamOptimizer
     - Learning rate: 0.0001
-    - Epoch: 80
-    - Batch size: 64
-    - Iteration per epoch: 11579
+    - Epoch: 60
+    - Batch size: 128
+    - Iteration per epoch: 6418
     - No learning rate decaying, gradient clipping are used
 
 ### Training Dataset
 
 - 291 images dataset with data augmentation (rotate or flip) is used
 - Data augmentation
-    - Downsize with (1.0, 0.7, 0.5) scales
+    - Downsize with (1.0, 0.9) scales
     - Rotate (0, 90, 180, 270) degrees
     - Flip left-right
-- More than 700,000 pairs are generated (up to 20GB)
+- More than 700,000 patch pairs are generated (up to 20GB)
 
 ## Installation
 
@@ -64,7 +63,7 @@ To install quickly, use `requirements.txt`. Example usage:
 ```bash
 pip install -r requirements.txt
 ```
-Note that we run the code with Windows 10, Tensorflow-gpu 1.13.1, CUDA 10.0, cuDNN v7.6.0 
+Note that we run the code with Ubuntu 16.04 LTS, Tensorflow-gpu 1.13.1, CUDA 10.0, cuDNN v7.6.0 
 
 ## Documentation
 
@@ -72,74 +71,63 @@ To pre-process the train and test dataset, you need to execute the Matlab code.
 
 Generating training data takes about half an hour, up to 20GB.
 
-The pre-processed test data with Set5 and Set14 is provided.
+Pre-processed test data with Set5 and Set14 is provided.
 
 ### Training VDSR
-Use `main.py` to train the network. Run `python main.py` to view the training process. Training takes 80 hours on a NVIDIA GeForce GTX 1050. Example usage:
+Use `main.py` to train the network. Run `python main.py` to view the training process. Training takes about 12 hours on a NVIDIA GeForce RTX 2080. Example usage:
 ```bash
 # Quick training
 python main.py
 
 # Example usage
-python main.py --epoch=40 --layer_depth=10 --l2_lambda=1e-3 --optimizer=momentum
+python main.py --epoch 40 --layer_depth 10 --learning-rate 1e-3 --checkpoint-path checkpoint/YOUR_CHECKPOINT_PATH
 
 # Usage
-python main.py [-h] [--epoch EPOCH] [--batch_size BATCH_SIZE] 
-               [--layer_depth LAYER_DEPTH] [--starter_learning_rate STARTER_LEARNING_RATE] [--decay_epochs DECAY_EPOCHS] [--optimizer OPTIMIZER] [--momentum MOMENTUM] [--grad_clip GRAD_CLIP] [--l2_regularization] [--l2_lambda L2_LAMBDA] [--train_dataset TRAIN_DATASET] [--valid_dataset VALID_DATASET]
+python main.py [-h] [--epoch EPOCH] [--batch-size BATCH_SIZE] 
+               [--layer-depth LAYER_DEPTH] [--learning-rate LEARNING_RATE] [--train-dataset TRAIN_DATASET] [--valid-dataset VALID_DATASET] [--checkpoint-path CHECKPOINT_PATH]
                
 optional arguments:
   -h, --help                Show this help message and exit
-  --epoch                   Number of epoch for training (Default: 80)
-  --batch_size              Batch size for training (Default: 64)
-  --layer_depth             Depth of the network layer (Default: 20)
-  --starter_learning_rate   Starter learning rate for training (Default: 1e-4)
-  --decay_epochs            epoch for learning rate
+  --epoch                   Number of epoch for training (Default: 60)
+  --batch-size              Batch size for training (Default: 128)
+  --layer-depth             Depth of the network layer (Default: 20)
+  --learning-rate           Learning rate for training (Default: 1e-4)
 
 ```
 
 ### Testing VDSR
-Also use `main.py` to test the network. Pretrained-model with 91-image training dataset and up-scaling factor 3 is given. Example usage:
+Also use `main.py` to test the network. Pretrained-model (multi-scale) with 291-image training dataset is given. Example usage:
 ```bash
 # Quick testing
-python main.py --is_training=False \
-    --use_pretrained=True
+python main.py --test
 
 # Example usage
-python main.py --is_training=False \
-    --use_pretrained=True \
-    --test_dataset=YOUR_DATASET \
-    --scale=4
+python main.py --test \
+    --model-path checkpoint/VDSR \
+    --test-dataset Urban100 \
+    --scale 4
 ```
   
-Please note that if you want to train or test with your own dataset, you need to execute the Matlab code with your own dataset first :)
+Note that if you want to train or test with your own dataset, you need to execute the Matlab code with your own dataset first :)
 
 ## Results
-
-### Performance curve for the residual network
-
-- Validated under **Set5** dataset with scale factor 2, 3 and 4
-- x-axis: epoch, y-axis: PSNR value
-
-<img src = 'figs/psnr_x2.png'> | <img src = 'figs/psnr_x3.png'> | <img src = 'figs/psnr_x4.png'> 
-:---: | :---: | :---: |
-*scale 2* | *scale 3* | *scale 4* 
 
 ### The average results of PSNR (dB) value
 
 *Dataset*    | *Scale* | *Bicubic* | *VDSR*  | *VDSR-Tensorflow* 
 :----------: | :-----: | :-------: | :-----: | :---------------: 
-**Set5**     | x2      | dB   | 37.53dB |
-**Set5**     | x3      | dB   | 33.66dB |
-**Set5**     | x4      | dB   | 31.35dB |
-**Set14**    | x2      | dB   | 33.03dB |
-**Set14**    | x3      | dB   | 29.77dB |
-**Set14**    | x4      | dB   | 28.01dB |
-**B100**     | x2      | dB   | 31.90dB |
-**B100**     | x3      | dB   | 28.82dB |
-**B100**     | x4      | dB   | 27.29dB |
-**Urban100** | x2      | dB   | 30.76dB |
-**Urban100** | x3      | dB   | 27.14dB |
-**Urban100** | x4      | dB   | 25.18dB |
+**Set5**     | x2      | 33.66dB   | 37.53dB | 37.46dB
+**Set5**     | x3      | 30.39dB   | 33.66dB | 33.64dB
+**Set5**     | x4      | 28.42dB   | 31.35dB | 31.09dB
+**Set14**    | x2      | 30.24dB   | 33.03dB | 33.09dB
+**Set14**    | x3      | 27.55dB   | 29.77dB | 29.87dB
+**Set14**    | x4      | 26.00dB   | 28.01dB | 27.97dB
+**BSD100**   | x2      | 29.56dB   | 31.90dB |
+**BSD100**   | x3      | 27.21dB   | 28.82dB |
+**BSD100**   | x4      | 25.96dB   | 27.29dB |
+**Urban100** | x2      | 26.88dB   | 30.76dB |
+**Urban100** | x3      | 24.46dB   | 27.14dB |
+**Urban100** | x4      | 23.14dB   | 25.18dB |
 
 
 ### Some of the result images
