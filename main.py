@@ -13,9 +13,9 @@ parser.add_argument('--test', action='store_true', default=False)
 parser.add_argument('--model-path', type=str, default='checkpoint/VDSR_pretrained')
 
 # Training settings
-parser.add_argument('--epoch', type=int, default=60, help='Number of epoch, default: 80')
-parser.add_argument('--batch-size', type=int, default=128, help='Mini-batch size, default: 64')
-parser.add_argument('--learning-rate', type=float, default=1e-4, help='Starter learning rate, default: 0.1')
+parser.add_argument('--epoch', type=int, default=60, help='Number of epoch, default: 60')
+parser.add_argument('--batch-size', type=int, default=128, help='Mini-batch size, default: 128')
+parser.add_argument('--learning-rate', type=float, default=1e-4, help='Learning rate, default: 0.0001')
 
 # Network setting
 parser.add_argument('--layer-depth', type=int, default=20, help='Depth of the network, default: 20')
