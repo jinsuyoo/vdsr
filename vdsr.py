@@ -43,8 +43,7 @@ class VDSR():
 
     # Build network architecture
     def build_network(self):
-        #initializer_w = tf.initializers.he_normal()
-        initializer_w = tf.contrib.layers.xavier_initializer()
+        initializer_w = tf.initializers.he_normal()
         initializer_b = tf.constant_initializer(0)
 
         with tf.variable_scope('VDSR'):
@@ -183,9 +182,7 @@ class VDSR():
             epoch, iteration, np.mean(psnr_x2), np.mean(psnr_x3), np.mean(psnr_x4)
             ), flush=True)
         
-        #if ((np.mean(psnr_x2) > self.best_psnr_x2) and (np.mean(psnr_x3) > self.best_psnr_x3) and (np.mean(psnr_x4) > self.best_psnr_x4)):
-        if ((np.mean(psnr_x2)+np.mean(psnr_x3)+np.mean(psnr_x4)) > (self.best_psnr_x2+self.best_psnr_x3+self.best_psnr_x4) ):
-
+        if ((np.mean(psnr_x2)+np.mean(psnr_x3)+np.mean(psnr_x4)) > (self.best_psnr_x2+self.best_psnr_x3+self.best_psnr_x4)):
             print('[*] Best PSNR value updated !')
             print('[*] [X2: {:.2f} -> {:.2f} / X3: {:.2f} -> {:.2f} / X4: {:.2f} -> {:.2f}]\n'.format(
                 self.best_psnr_x2, np.mean(psnr_x2), self.best_psnr_x3, np.mean(psnr_x3), self.best_psnr_x4, np.mean(psnr_x4)
